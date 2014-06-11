@@ -7,6 +7,8 @@ module CloudFormation
   module Exporter
     class SQS
 
+      include CloudFormation::Exporter
+
       FIELDS = [
         "DelaySeconds",
         "MaximumMessageSize",
@@ -15,23 +17,33 @@ module CloudFormation
         "VisibilityTimeout"
       ]
 
-      def initialize(*args)
-        @client = AWS::SQS.new(*args)
+      def initialize(prefix = nil)
+        @prefix = prefix
+        @client = AWS::SQS.new
       end
 
-      def queues
-        @client.queues.inject({}) do |acc, queue|
+      def resources
+        filtered_queues.inject({}) do |acc, queue|
           name = queue.url.split("/").last
-          acc[name] = FIELDS.inject({}) do |properties, (field,mapping)|
+          result = FIELDS.inject({}) do |properties, (field,mapping)|
             properties[field] = queue.send(AWS::Core::Inflection.ruby_name(mapping || field))
             properties
           end
+          result['QueueName'] = name
+          acc[generate_name(name)] = {
+            "Type" => "AWS::SQS::Queue",
+            "Properties" => result
+          }
           acc
         end
       end
 
-      def to_json
-        JSON.pretty_generate(CloudFormation::Exporter.base_template(queues))
+      def filtered_queues
+        if @prefix
+          @client.queues.with_prefix(@prefix)
+        else
+          @client.queues
+        end
       end
 
     end

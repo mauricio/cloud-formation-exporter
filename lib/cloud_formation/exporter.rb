@@ -1,16 +1,19 @@
 require "cloud_formation/exporter/version"
+require "active_support/core_ext/string/inflections"
 
 module CloudFormation
   module Exporter
 
-    def base_template(resources = {})
+    def generate_template
       {
         "AWSTemplateFormatVersion" => "2010-09-09",
         "Resources" => resources
       }
     end
 
-    module_function :base_template
+    def generate_name(original)
+      original.gsub(/[^A-Za-z0-9]/, '_').camelize
+    end
 
   end
 end
