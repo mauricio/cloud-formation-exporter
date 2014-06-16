@@ -26,7 +26,7 @@ module CloudFormation
         filtered_queues.inject({}) do |acc, queue|
           name = queue.url.split("/").last
           result = FIELDS.inject({}) do |properties, (field,mapping)|
-            properties[field] = queue.send(AWS::Core::Inflection.ruby_name(mapping || field))
+            properties[field] = queue.send(to_ruby_name(mapping || field))
             properties
           end
           result['QueueName'] = name

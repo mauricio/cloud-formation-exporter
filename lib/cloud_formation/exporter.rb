@@ -15,5 +15,9 @@ module CloudFormation
       original.gsub(/[^A-Za-z0-9]/, '_').camelize
     end
 
+    def to_ruby_name(name)
+      AWS::Core::Inflection.ruby_name(name)
+    end
+
   end
 end
